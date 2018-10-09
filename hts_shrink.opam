@@ -1,28 +1,32 @@
-opam-version: "1.2"
-name: "autoco"
-authors: "Francois BERENGER <ligand@free.fr>"
-maintainer: "ligand@free.fr"
-homepage: "www.free.fr"
-bug-reports: "www.free.fr"
-dev-repo: "HappyCrow@bitbucket.org:HappyCrow/qsar_cftr_01.git"
-license: "GPL"
-build: [
-  [make]
-]
-install: [
-  ["cp"  "_build/default/src/test.exe" "%{bin}%/cftr_qsar_test"]
-]
-remove: [
-  ["sh" "-c" "rm -f %{bin}%/cftr_qsar_test"]
-]
+opam-version: "2.0"
+name: "hts_shrink"
+authors: "Francois Berenger"
+maintainer: "unixjunkie@sdf.org"
+homepage: "https://github.com/UnixJunkie/hts_shrink"
+bug-reports: "https://github.com/UnixJunkie/hts_shrink/issues"
+dev-repo: "git+https://github.com/UnixJunkie/hts_shrink.git"
+license: "BSD-3"
+build: ["jbuilder" "build" "-p" name "-j" jobs]
 depends: [
   "dune" {build}
   "batteries"
   "dolog"
   "parmap"
-  "cpm"
   "minicli"
-  "svm"
+  "bitv"
   "bst"
-  "get_line"
+  "get_line" {test}
 ]
+synopsis:
+"Distance-Based Boolean Applicability Domain for High Throughput Screening datasets"
+description: """
+Reference implementation of the Distance-Based Boolean Applicability Domain.
+For more information, and if you use the software, please cite:
+"A Distance-Based Boolean Applicability Domain for Classification"
+Francois Berenger and Yoshihiro Yamanishi.
+To appear in Journal of Chemical Information and Modeling.
+"""
+url {
+  src: "https://github.com/UnixJunkie/hts_shrink/archive/v1.0.0.tar.gz"
+  checksum: "md5=bfe43fbcfe96c0b7ca9a104c8d6dc787"
+}
