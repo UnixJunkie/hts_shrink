@@ -41,25 +41,16 @@ let array_tanimoto_dist xs ys =
 (* a SFP encoded molecule is an intmap: atom_env (feature index) to count
    of this feature *)
 let intmap_tanimoto m1 m2 =
-  let inter_card =
-    let merged =
-      IntMap.merge (fun _k maybe_v1 maybe_v2 ->
-          match (maybe_v1, maybe_v2) with
-          | Some v1, Some v2 -> Some (min v1 v2)
-          | _ -> None
-        ) m1 m2 in
-    IntMap.fold (fun _k v acc ->
-        acc + v
-      ) merged 0 in
-  let union_card =
-    let merged =
-      IntMap.merge (fun _k maybe_v1 maybe_v2 ->
-          match (maybe_v1, maybe_v2) with
-          | Some v1, Some v2 -> Some (max v1 v2)
-          | None, None -> None
-          | Some v1, None | None, Some v1 -> Some v1
-        ) m1 m2 in
-    IntMap.fold (fun _k v acc ->
-        acc + v
-      ) merged 0 in
-  (float inter_card) /. (float union_card)
+  let rec loop (icard, ucard) l1 l2 = match l1, l2 with
+    | [], [] -> (float icard) /. (float ucard)
+    | [], (_k2, v2) :: kvs2 -> loop (icard, ucard + v2) [] kvs2
+    | (_k1, v1) :: kvs1, [] -> loop (icard, ucard + v1) kvs1 []
+    | (k1, v1) :: kvs1, (k2, v2) :: kvs2 ->
+      (* process keys in increasing order *)
+      if k1 < k2 then
+        loop (icard, ucard + v1) kvs1 l2
+      else if k2 < k1 then
+        loop (icard, ucard + v2) l1 kvs2
+      else (* k1 = k2 *)
+        loop (icard + (min v1 v2), ucard + (max v1 v2)) kvs1 kvs2 in
+  loop (0, 0) (IntMap.bindings m1) (IntMap.bindings m2)
