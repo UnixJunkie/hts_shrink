@@ -22,11 +22,12 @@ synopsis:
 description: """
 Reference implementation of the Distance-Based Boolean Applicability Domain.
 For more information, and if you use the software, please cite:
-"A Distance-Based Boolean Applicability Domain for Classification"
+"A Distance-Based Boolean Applicability Domain for Classification of
+High Throughput Screening Data"
 Francois Berenger and Yoshihiro Yamanishi.
 To appear in Journal of Chemical Information and Modeling.
 """
-url {
-  src: "https://github.com/UnixJunkie/hts_shrink/archive/v1.0.0.tar.gz"
-  checksum: "md5=bfe43fbcfe96c0b7ca9a104c8d6dc787"
-}
+# url {
+#   src: "https://github.com/UnixJunkie/hts_shrink/archive/XXX.tar.gz"
+#   checksum: "md5=YYY"
+# }
