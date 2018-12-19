@@ -41,23 +41,25 @@ let array_tanimoto_dist xs ys =
 (* a SFP encoded molecule is an intmap: atom_env (feature index) to count
    of this feature *)
 let intmap_tanimoto m1 m2 =
-  let int_equal (i: int) (j: int): bool =
-    i = j in
-  (* like x2s in tanimoto_et_al *)
-  let intmap_sum_of_squared_values m =
+  let inter_card =
+    let merged =
+      IntMap.merge (fun _k maybe_v1 maybe_v2 ->
+          match (maybe_v1, maybe_v2) with
+          | Some v1, Some v2 -> Some (min v1 v2)
+          | _ -> None
+        ) m1 m2 in
     IntMap.fold (fun _k v acc ->
-        acc + v * v
-      ) m 0 in
-  (* like xys in tanimoto_et_al *)
-  let intmap_sum_of_value_products m1 m2 =
-    IntMap.fold (fun k1 v1 acc ->
-        let v2 = IntMap.find_default 0 k1 m2 in
-        acc + v1 * v2
-      ) m1 0 in
-  let xys = float (intmap_sum_of_value_products m1 m2) in
-  let x2s = float (intmap_sum_of_squared_values m1) in
-  let y2s = float (intmap_sum_of_squared_values m2) in
-  if IntMap.equal int_equal m1 m2
-  then 1.0 (* needed _before_ NaN protection *)
-  else if xys = 0.0 then 0.0 (* avoid NaN *)
-  else xys /. (x2s +. y2s -. xys) (* regular formula *)
+        acc + v
+      ) merged 0 in
+  let union_card =
+    let merged =
+      IntMap.merge (fun _k maybe_v1 maybe_v2 ->
+          match (maybe_v1, maybe_v2) with
+          | Some v1, Some v2 -> Some (max v1 v2)
+          | None, None -> None
+          | Some v1, None | None, Some v1 -> Some v1
+        ) m1 m2 in
+    IntMap.fold (fun _k v acc ->
+        acc + v
+      ) merged 0 in
+  (float inter_card) /. (float union_card)
