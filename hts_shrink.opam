@@ -6,7 +6,7 @@ homepage: "https://github.com/UnixJunkie/hts_shrink"
 bug-reports: "https://github.com/UnixJunkie/hts_shrink/issues"
 dev-repo: "git+https://github.com/UnixJunkie/hts_shrink.git"
 license: "BSD-3"
-build: ["jbuilder" "build" "-p" name "-j" jobs]
+build: ["dune" "build" "-p" name "-j" jobs]
 depends: [
   "dune" {build}
   "batteries"
