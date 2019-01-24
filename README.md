@@ -2,7 +2,7 @@
 Distance-Based Boolean Applicability Domain for
 Classification of High Throughput Screening Data
 
-<img src="DBBAD_logo.png" alt="logo" width="200"/>
+<img src="DBBAD_logo.png" alt="logo" width="400"/>
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1452088.svg)](https://doi.org/10.5281/zenodo.1452088)
 
