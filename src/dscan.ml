@@ -15,6 +15,7 @@ module CLI = Minicli.CLI
 module A = MyArray
 module Ht = BatHashtbl
 module L = MyList
+module Mol = Molecules
 
 let find_best_d dscan_fn global_res ds =
   (* get actives_tot and decoys_tot from HT *)
@@ -54,6 +55,41 @@ let apply_DBBAD ncores best_d train test =
   let test_card = L.length test in
   Log.info "passed AD: %d / %d" ok_card test_card;
   ok_test_mols
+
+let demux input () =
+  try Mol.read_one input
+  with End_of_file -> raise Parany.End_of_input
+
+let work best_d actives_bst test_mol =
+  if Dbad_common.mol_is_inside_global_AD test_mol best_d actives_bst then
+    Some test_mol
+  else
+    None
+
+(* counters maintained by the demuxer *)
+let mol_count = ref 0
+let glob_ok_card = ref 0
+
+let mux output maybe_mol =
+  (match maybe_mol with
+   | None -> ()
+   | Some test_mol ->
+     let () = incr glob_ok_card in
+     FpMol.to_out output test_mol);
+  incr mol_count;
+  if !mol_count mod 1000 = 0 then
+    (* user feedback *)
+    eprintf "processed: %d\r" !mol_count
+
+let apply_DBBAD_large_test ncores best_d train test_in test_out =
+  let actives_train = L.filter FpMol.is_active train in
+  let actives_bst = Bstree.(create 1 Two_bands (A.of_list actives_train)) in
+  (* Parany *)
+  Parany.run ~verbose:false ~csize:1 ~nprocs:ncores
+    ~demux:(demux test_in)
+    ~work:(work best_d actives_bst)
+    ~mux:(mux test_out);
+  Log.info "passed AD: %d / %d" !glob_ok_card !mol_count
 
 let rand_split_in_three rng train' =
   let train = L.shuffle ~state:rng train' in
@@ -115,8 +151,10 @@ let main () =
     );
   Log.info "test_DBBAD written to: %s" test_dbbad_fn;
   (* report actives proportion before/after DBBAD *)
-  let card_act_train, card_dec_train = L.filter_counts FpMol.is_active train in
-  let card_act_test, card_dec_test = L.filter_counts FpMol.is_active test_DBBAD in
+  let card_act_train, card_dec_train =
+    L.filter_counts FpMol.is_active train in
+  let card_act_test, card_dec_test =
+    L.filter_counts FpMol.is_active test_DBBAD in
   let old_rate =
     let atrain = float card_act_train in
     let dtrain = float card_dec_train in
