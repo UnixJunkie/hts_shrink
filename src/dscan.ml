@@ -121,9 +121,6 @@ let main () =
   let train_dbbad_fn = train_fn ^ ".dbbad" in
   let test_dbbad_fn = test_fn ^ ".dbbad" in
   let nb_features, train = Molecules.from_file train_fn in
-  let nb_features', test = Molecules.from_file test_fn in
-  (* check molecules use the same encoding *)
-  assert(nb_features' = nb_features);
   let dscan_fn = CLI.get_string_def ["--dscan"] args "/dev/null" in
   (* train the DBBAD on the training set *)
   let ds =
@@ -138,35 +135,53 @@ let main () =
   Dbad_common.global_dscan
     ds global_res (L.rev_append train_0 train_2) train_1;
   let best_d = find_best_d dscan_fn global_res ds in
-  (* apply the DBBAD on the training set, for before and before-after modes *)
+  Log.info "best_d: %f" best_d;
+  let large_testset = CLI.get_set_bool ["--large"] args in
+  (* apply the DBBAD on the training set,
+     for before and before-after modes *)
   let train_DBBAD = apply_DBBAD ncores best_d train train in
   Utls.with_out_file train_dbbad_fn (fun out ->
       L.iter (FpMol.to_out out) train_DBBAD
     );
   Log.info "train_DBBAD written to: %s" train_dbbad_fn;
   (* apply the DBBAD on the test set, for after and before-after modes *)
-  let test_DBBAD = apply_DBBAD ncores best_d train test in
-  Utls.with_out_file test_dbbad_fn (fun out ->
-      L.iter (FpMol.to_out out) test_DBBAD
-    );
-  Log.info "test_DBBAD written to: %s" test_dbbad_fn;
-  (* report actives proportion before/after DBBAD *)
-  let card_act_train, card_dec_train =
-    L.filter_counts FpMol.is_active train in
-  let card_act_test, card_dec_test =
-    L.filter_counts FpMol.is_active test_DBBAD in
-  let old_rate =
-    let atrain = float card_act_train in
-    let dtrain = float card_dec_train in
-    atrain /. (atrain +. dtrain) in
-  let new_rate =
-    let atest = float card_act_test in
-    let dtest = float card_dec_test in
-    atest /. (atest +. dtest) in
-  Log.info "A_train: %d D_train: %d AD_A_test: %d AD_D_test: %d \
-            old: %f new: %f EF: %.3f"
-    card_act_train card_dec_train
-    card_act_test card_dec_test
-    old_rate new_rate (new_rate /. old_rate)
+  if large_testset then
+    Utls.with_in_file test_fn (fun input ->
+        (* parse format header on 1st line *)
+        let radius, _index_fn = Mop2d_env.parse_comment input in
+        assert(radius = nb_features);
+        (* process all molecules in // *)
+        Utls.with_out_file test_dbbad_fn (fun output ->
+            apply_DBBAD_large_test ncores best_d train input output
+          );
+        Log.info "test_DBBAD written to: %s" test_dbbad_fn
+      )
+  else
+    let nb_features', test = Molecules.from_file test_fn in
+    (* check molecules use the same encoding *)
+    assert(nb_features' = nb_features);
+    let test_DBBAD = apply_DBBAD ncores best_d train test in
+    Utls.with_out_file test_dbbad_fn (fun out ->
+        L.iter (FpMol.to_out out) test_DBBAD
+      );
+    Log.info "test_DBBAD written to: %s" test_dbbad_fn;
+    (* report actives proportion before/after DBBAD *)
+    let card_act_train, card_dec_train =
+      L.filter_counts FpMol.is_active train in
+    let card_act_test, card_dec_test =
+      L.filter_counts FpMol.is_active test_DBBAD in
+    let old_rate =
+      let atrain = float card_act_train in
+      let dtrain = float card_dec_train in
+      atrain /. (atrain +. dtrain) in
+    let new_rate =
+      let atest = float card_act_test in
+      let dtest = float card_dec_test in
+      atest /. (atest +. dtest) in
+    Log.info "A_train: %d D_train: %d AD_A_test: %d AD_D_test: %d \
+              old: %f new: %f EF: %.3f"
+      card_act_train card_dec_train
+      card_act_test card_dec_test
+      old_rate new_rate (new_rate /. old_rate)
 
 let () = main ()
