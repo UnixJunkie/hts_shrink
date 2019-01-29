@@ -79,7 +79,7 @@ let mux output maybe_mol =
   incr mol_count;
   if !mol_count mod 1000 = 0 then
     (* user feedback *)
-    eprintf "processed: %d\r" !mol_count
+    eprintf "processed: %d\r%!" !mol_count
 
 let apply_DBBAD_large_test ncores best_d train test_in test_out =
   let actives_train = L.filter FpMol.is_active train in
@@ -109,6 +109,7 @@ let main () =
               --test <file>: file with encoded test set molecules\n\
               [--seed <int>]: random seed\n\
               [-np <int>]: number of processors\n\
+              [--large]: if test set does not fit in memory\n\
               [--dscan <file>]: where to store the scan\n"
        Sys.argv.(0);
      exit 1);
@@ -148,8 +149,11 @@ let main () =
   if large_testset then
     Utls.with_in_file test_fn (fun input ->
         (* parse format header on 1st line *)
-        let radius, _index_fn = Mop2d_env.parse_comment input in
-        assert(radius = nb_features);
+        let radius, index_fn = Mop2d_env.parse_comment input in
+        let radius', mop2d_index = Mop2d_env.restore_mop2d_index index_fn in
+        assert(radius = radius');
+        let nb_features' = Hashtbl.length mop2d_index in
+        assert(nb_features' = nb_features);
         (* process all molecules in // *)
         Utls.with_out_file test_dbbad_fn (fun output ->
             apply_DBBAD_large_test ncores best_d train input output
