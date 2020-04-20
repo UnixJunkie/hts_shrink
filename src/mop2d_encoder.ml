@@ -14,6 +14,7 @@ module A = Array
 module CLI = Minicli.CLI
 module Fp = Fingerprint
 module L = MyList
+module Log = Dolog.Log
 module Ht = BatHashtbl
 module StringSet = BatSet.String
 module IntMap = BatMap.Int

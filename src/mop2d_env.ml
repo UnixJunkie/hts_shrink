@@ -11,6 +11,7 @@
 open Printf
 
 module L = MyList
+module Log = Dolog.Log
 
 (* center, neighbors 1 bond away, neighbors 2 bonds away, etc.
    MUST BE CANONICAL (i.e. sorted) *)
@@ -37,7 +38,7 @@ let of_string (s: string): t =
                 (sprintf "Mop2d_env.of_string: cannot parse pair: %s in %s"
                    s' s) in
   let neighbors' = BatString.chop ~l:1 ~r:1 neighbors in
-  let sub_lists = BatString.nsplit neighbors' ~by:"];" in
+  let sub_lists = BatString.split_on_string neighbors' ~by:"];" in
   let sub_lists =
     L.map (fun s ->
         if BatString.ends_with s "]" then s

@@ -13,6 +13,7 @@ open Printf
 module Fp = Fingerprint
 module IntMap = MyIntMap
 module L = MyList
+module Log = Dolog.Log
 
 let mol_is_active line =
   BatString.starts_with line "active"

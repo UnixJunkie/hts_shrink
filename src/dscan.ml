@@ -15,6 +15,7 @@ module CLI = Minicli.CLI
 module A = MyArray
 module Ht = BatHashtbl
 module L = MyList
+module Log = Dolog.Log
 module Mol = Molecules
 
 let find_best_d dscan_fn global_res ds =

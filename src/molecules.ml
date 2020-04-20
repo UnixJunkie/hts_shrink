@@ -8,6 +8,7 @@
 
 module IntMap = MyIntMap
 module L = MyList
+module Log = Dolog.Log
 module Fp = Fingerprint
 
 let read_one input =
