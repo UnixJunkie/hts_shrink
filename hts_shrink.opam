@@ -14,10 +14,7 @@ depends: [
   "parany" {>= "11.0.2"}
   "minicli" {>= "5.0.0"}
   "molenc"
-  "bitv"
   "bst"
-  "ocamlgraph"
-  "ptmap"
   "get_line" {with-test}
   "ocaml" {>= "4.03"}
 ]

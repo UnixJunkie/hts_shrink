@@ -10,7 +10,7 @@
 
 open Printf
 
-module Fp = Fingerprint
+module Fp = Molenc.Fingerprint
 module IntMap = MyIntMap
 module L = MyList
 module Log = Dolog.Log
