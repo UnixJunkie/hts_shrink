@@ -7,6 +7,7 @@
    680-4 Kawazu, Iizuka, Fukuoka, 820-8502, Japan. *)
 
 module A = Array
+module FpMol = Molenc.FpMol
 module L = MyList
 module Ht = BatHashtbl
 

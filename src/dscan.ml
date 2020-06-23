@@ -13,6 +13,7 @@ open Printf
 
 module CLI = Minicli.CLI
 module A = MyArray
+module FpMol = Molenc.FpMol
 module Ht = BatHashtbl
 module L = MyList
 module Log = Dolog.Log
@@ -57,8 +58,13 @@ let apply_DBBAD ncores best_d train test =
   Log.info "passed AD: %d / %d" ok_card test_card;
   ok_test_mols
 
+let in_count = ref 0
+
 let demux input () =
-  try Mol.read_one input
+  try
+    let res = Mol.read_one !in_count input in
+    incr in_count;
+    res
   with End_of_file -> raise Parany.End_of_input
 
 let work best_d actives_bst test_mol =
@@ -86,7 +92,7 @@ let apply_DBBAD_large_test ncores best_d train test_in test_out =
   let actives_train = L.filter FpMol.is_active train in
   let actives_bst = Bstree.(create 1 Two_bands (A.of_list actives_train)) in
   (* Parany *)
-  Parany.run ~csize:1 ncores
+  Parany.run ncores
     ~demux:(demux test_in)
     ~work:(work best_d actives_bst)
     ~mux:(mux test_out);

@@ -9,10 +9,10 @@
 module IntMap = MyIntMap
 module L = MyList
 module Log = Dolog.Log
-module Fp = Fingerprint
+module FpMol = Molenc.FpMol
 
-let read_one input =
-  FpMol.parse_one Fp.SFPf (input_line input)
+let read_one count input =
+  FpMol.parse_one count (input_line input)
 
 let from_file fn =
   let count = ref 0 in
@@ -24,7 +24,7 @@ let from_file fn =
         assert(radius = radius');
         let res, exn =
           L.unfold_exc (fun () ->
-              let res = read_one input in
+              let res = read_one !count input in
               incr count;
               res
             ) in
