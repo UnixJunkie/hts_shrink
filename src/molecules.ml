@@ -16,12 +16,8 @@ let read_one count input =
 
 let from_file fn =
   let count = ref 0 in
-  let nb_features, mols =
+  let mols =
     Utls.with_in_file fn (fun input ->
-        let radius, index_fn = Mop2d_env.parse_comment input in
-        let radius', mop2d_index = Mop2d_env.restore_mop2d_index index_fn in
-        let nb_features = Hashtbl.length mop2d_index in
-        assert(radius = radius');
         let res, exn =
           L.unfold_exc (fun () ->
               let res = read_one !count input in
@@ -29,7 +25,7 @@ let from_file fn =
               res
             ) in
         if exn <> End_of_file then raise exn;
-        (nb_features, res)
+        res
       ) in
   Log.info "read %d from %s" !count fn;
-  (nb_features, mols)
+  mols

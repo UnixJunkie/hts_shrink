@@ -1,7 +1,7 @@
 (* Distance-Based Boolean Applicability Domain (DBBAD)
    reference implementation.
 
-   Copyright (C) 2018, Francois Berenger
+   Copyright (C) 2020, Francois Berenger
 
    Yamanishi laboratory,
    Department of Bioscience and Bioinformatics,
@@ -112,23 +112,27 @@ let main () =
   if argc = 1 then
     (eprintf "usage:\n\
               %s\n\
-              --train <file>: file with encoded training set molecules\n\
-              --test <file>: file with encoded test set molecules\n\
-              [--seed <int>]: random seed\n\
-              [-np <int>]: number of processors\n\
-              [--large]: if test set does not fit in memory\n\
+              --train <file>: file with encoded training set molecules\n  \
+              --test <file>: file with encoded test set molecules\n  \
+              [--seed <int>]: random seed\n  \
+              [--NxCV <int>]: number of folds of cross validation\n  \
+              on the training set (default=3)\n  \
+              [-np <int>]: number of processors\n  \
+              [--large]: if test set does not fit in memory\n  \
               [--dscan <file>]: where to store the scan\n"
        Sys.argv.(0);
      exit 1);
-  let rng = match CLI.get_int_opt ["--seed"] args with
-    | None -> BatRandom.State.make_self_init ()
-    | Some seed -> BatRandom.State.make [|seed|] in
+  let seed = match CLI.get_int_opt ["--seed"] args with
+    | None -> (BatRandom.self_init ();
+               BatRandom.int (int_of_float ((2. ** 30.) -. 1.)))
+    | Some n -> n in
   let ncores = CLI.get_int_def ["-np"] args 1 in
   let train_fn = CLI.get_string ["--train"] args in
   let test_fn = CLI.get_string ["--test"] args in
+  let nfolds = CLI.get_int_def ["--NxCV"] args 3 in
   let train_dbbad_fn = train_fn ^ ".dbbad" in
   let test_dbbad_fn = test_fn ^ ".dbbad" in
-  let nb_features, train = Molecules.from_file train_fn in
+  let train = Molecules.from_file train_fn in
   let dscan_fn = CLI.get_string_def ["--dscan"] args "/dev/null" in
   let large_testset = CLI.get_set_bool ["--large"] args in
   CLI.finalize();
@@ -137,13 +141,12 @@ let main () =
     let nb_steps = 101 in
     L.frange 1.0 `Downto 0.0 nb_steps in
   let global_res = Ht.create 11 in
-  let train_0, train_1, train_2 = rand_split_in_three rng train in
-  Dbad_common.global_dscan
-    ds global_res (L.rev_append train_0 train_1) train_2;
-  Dbad_common.global_dscan
-    ds global_res (L.rev_append train_1 train_2) train_0;
-  Dbad_common.global_dscan
-    ds global_res (L.rev_append train_0 train_2) train_1;
+  (* NxCV *)
+  let train_test_folds = Cpm.Utls.shuffle_then_nfolds seed nfolds train in
+  L.iter (fun (train_lines, test_lines) ->
+      Dbad_common.global_dscan
+        ds global_res train_lines test_lines
+    ) train_test_folds;
   let best_d = find_best_d dscan_fn global_res ds in
   Log.info "best_d: %f" best_d;
   (* apply the DBBAD on the training set,
@@ -156,12 +159,6 @@ let main () =
   (* apply the DBBAD on the test set, for after and before-after modes *)
   if large_testset then
     Utls.with_in_file test_fn (fun input ->
-        (* parse format header on 1st line *)
-        let radius, index_fn = Mop2d_env.parse_comment input in
-        let radius', mop2d_index = Mop2d_env.restore_mop2d_index index_fn in
-        assert(radius = radius');
-        let nb_features' = Hashtbl.length mop2d_index in
-        assert(nb_features' = nb_features);
         (* process all molecules in // *)
         Utls.with_out_file test_dbbad_fn (fun output ->
             apply_DBBAD_large_test ncores best_d train input output
@@ -169,9 +166,7 @@ let main () =
         Log.info "test_DBBAD written to: %s" test_dbbad_fn
       )
   else
-    let nb_features', test = Molecules.from_file test_fn in
-    (* check molecules use the same encoding *)
-    assert(nb_features' = nb_features);
+    let test = Molecules.from_file test_fn in
     let test_DBBAD = apply_DBBAD ncores best_d train test in
     Utls.with_out_file test_dbbad_fn (fun out ->
         L.iter (FpMol.to_out out) test_DBBAD
