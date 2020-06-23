@@ -98,13 +98,6 @@ let apply_DBBAD_large_test ncores best_d train test_in test_out =
     ~mux:(mux test_out);
   Log.info "passed AD: %d / %d" !glob_ok_card !mol_count
 
-let rand_split_in_three rng train' =
-  let train = L.shuffle ~state:rng train' in
-  let train_card = L.length train in
-  let train_0, rest_0 = L.takedrop (train_card / 3) train in
-  let train_1, train_2 = L.takedrop (train_card / 3) rest_0 in
-  (train_0, train_1, train_2)
-
 let main () =
   Log.color_on ();
   Log.set_log_level Log.DEBUG;
