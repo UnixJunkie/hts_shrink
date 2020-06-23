@@ -143,7 +143,8 @@ let main () =
   let global_res = Ht.create 11 in
   (* NxCV *)
   let train_test_folds = Cpm.Utls.shuffle_then_nfolds seed nfolds train in
-  L.iter (fun (train_lines, test_lines) ->
+  L.iteri (fun i (train_lines, test_lines) ->
+      Log.info "fold: %d" i;
       Dbad_common.global_dscan
         ds global_res train_lines test_lines
     ) train_test_folds;
