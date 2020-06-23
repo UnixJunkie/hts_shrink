@@ -12,7 +12,7 @@ depends: [
   "batteries"
   "dolog" {>= "4.0.0"}
   "parmap"
-  "parany" {>= "5.0.0"}
+  "parany" {>= "11.0.2"}
   "minicli" {>= "5.0.0"}
   "bitv"
   "bst"
