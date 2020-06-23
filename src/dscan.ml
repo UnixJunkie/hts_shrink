@@ -124,6 +124,8 @@ let main () =
   let test_dbbad_fn = test_fn ^ ".dbbad" in
   let nb_features, train = Molecules.from_file train_fn in
   let dscan_fn = CLI.get_string_def ["--dscan"] args "/dev/null" in
+  let large_testset = CLI.get_set_bool ["--large"] args in
+  CLI.finalize();
   (* train the DBBAD on the training set *)
   let ds =
     let nb_steps = 101 in
@@ -138,7 +140,6 @@ let main () =
     ds global_res (L.rev_append train_0 train_2) train_1;
   let best_d = find_best_d dscan_fn global_res ds in
   Log.info "best_d: %f" best_d;
-  let large_testset = CLI.get_set_bool ["--large"] args in
   (* apply the DBBAD on the training set,
      for before and before-after modes *)
   let train_DBBAD = apply_DBBAD ncores best_d train train in
