@@ -86,7 +86,7 @@ let apply_DBBAD_large_test ncores best_d train test_in test_out =
   let actives_train = L.filter FpMol.is_active train in
   let actives_bst = Bstree.(create 1 Two_bands (A.of_list actives_train)) in
   (* Parany *)
-  Parany.run ~verbose:false ~csize:1 ~nprocs:ncores
+  Parany.run ~csize:1 ncores
     ~demux:(demux test_in)
     ~work:(work best_d actives_bst)
     ~mux:(mux test_out);
