@@ -44,7 +44,7 @@ let apply_DBBAD ncores best_d train test =
   let actives_train = L.filter FpMol.is_active train in
   let actives_bst = Bstree.(create 1 Two_bands (A.of_list actives_train)) in
   let maybe_ok_test_mols =
-    L.parmap ncores (fun test_mol ->
+    Parany.Parmap.parmap ncores (fun test_mol ->
         (Dbad_common.mol_is_inside_global_AD test_mol best_d actives_bst,
          test_mol)
       ) test in
