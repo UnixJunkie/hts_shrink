@@ -5,7 +5,7 @@ maintainer: "unixjunkie@sdf.org"
 homepage: "https://github.com/UnixJunkie/hts_shrink"
 bug-reports: "https://github.com/UnixJunkie/hts_shrink/issues"
 dev-repo: "git+https://github.com/UnixJunkie/hts_shrink.git"
-license: "BSD-3"
+license: "BSD-3-Clause"
 build: ["dune" "build" "-p" name "-j" jobs]
 depends: [
   "dune"
@@ -22,7 +22,7 @@ depends: [
   "ocaml" {>= "4.03"}
 ]
 synopsis:
-"Distance-Based Boolean Applicability Domain for High Throughput Screening datasets"
+"Distance-Based Boolean Applicability Domain for High Throughput Screening data"
 description: """
 Reference implementation of the Distance-Based Boolean Applicability Domain.
 For more information, and if you use the software, please cite:
