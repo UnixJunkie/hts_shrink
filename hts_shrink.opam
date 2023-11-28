@@ -8,13 +8,13 @@ dev-repo: "git+https://github.com/UnixJunkie/hts_shrink.git"
 license: "BSD-3-Clause"
 build: ["dune" "build" "-p" name "-j" jobs]
 depends: [
-  "dune"
-  "batteries"
-  "cpm" {>= "10.2.0"}
+  "dune" {>= "2.5"}
+  "batteries" {>= "3.0.0"}
+  "cpm"
+  "molenc" {>= "11.1.1"}
   "dolog" {>= "4.0.0"}
   "parany" {>= "11.0.2"}
   "minicli" {>= "5.0.0"}
-  "molenc"
   "bst"
   "get_line" {with-test}
   "ocaml" {>= "4.03"}
